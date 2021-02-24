@@ -3,7 +3,7 @@
 
 [Conan.io](https://conan.io) recipe for [miniconda](https://docs.conda.io/).
 
-The recipe helps to install miniconda on windows, setup channels and install packages. The package is usually consumed either as a build requirement.
+The recipe helps to install miniconda on windows, setup channels and install packages. The package is usually consumed as a build requirement.
 The default options is configured to allow unattended installation to get `flang`, `clang-cl` on windows. 
 
 ## How to use this package
@@ -17,7 +17,11 @@ The default options is configured to allow unattended installation to get `flang
 2. Use the conda environment
 
    ```bash
-   $ conan install miniconda/4.9.2@sintef/testing -g virtualenv -o miniconda:packages=flang -o miniconda:channels=conda-forge --build missing
+   $ conan install miniconda/4.9.2@sintef/testing `
+       -g virtualenv `
+       -o miniconda:packages=flang `
+       -o miniconda:channels=conda-forge `
+       --build missing
    $ activate.bat
    $ conda activate
    $ flang --version
@@ -27,11 +31,11 @@ The default options is configured to allow unattended installation to get `flang
 
 Option | Default | Domain
 ---|---|---
-channesl | conda-forge | Comma separated string list
-packages | flang,clangdev,perl,libflang | Comma separated string list
+channels | conda-forge | Comma separated list
+packages | flang,clangdev,perl,libflang | Comma separated list
 
 ## Known recipe issues
 
-- The conda virtual environment is not activated by default. To use in a recipe, you need an active `RunEnvironment` and then call `conda activate && <your command>`
-- The installation interferes with other conda installations in that it uses default (global) locations for some settings (see `conda config --show`)
+- The conda virtual environment is not activated by default. To use in a conan recipe, you need an active `RunEnvironment` and then call `conda activate && <your command>` in a `self.run`
+- The installation interferes with other conda installations. It uses default (global) locations for some settings (see `conda config --show`)
 
