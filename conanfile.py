@@ -1,5 +1,8 @@
-from conans import ConanFile, CMake, tools
+from conans import ConanFile, tools
+from conans.errors import ConanInvalidConfiguration
+
 import os
+
 
 class MinicondaConan(ConanFile):
     name = "miniconda"
@@ -15,55 +18,55 @@ class MinicondaConan(ConanFile):
         "channels": "ANY"
     }
     default_options = {
-        "packages": "flang,clangdev,perl,libflang", 
+        "packages": "flang,clangdev,perl,libflang",
         "channels": "conda-forge"
     }
     no_copy_source = True
     short_paths = True
     _pythonversion = 38
     generators = "virtualenv"
-    
+
     @property
     def _packages(self):
         packs = str(self.options.get_safe("packages", default=""))
         if not packs:
             return ""
         return " ".join(packs.split(','))
-    
+
     def _channels(self):
         chans = str(self.options.get_safe("channels", default=""))
         if not chans:
             return []
         return chans.split(',')
-    
+
     @property
     def _platform(self):
         return {"Windows": "Windows",
                 "Macos": "MacOSX",
                 "Linux": "Linux"}.get(str(self.settings.os))
-                
+
     @property
     def _suffix(self):
         return {"Windows": "exe",
                 "Macos": "sh",
                 "Linux": "sh"}.get(str(self.settings.os))
-    
+
     @property
     def _installer(self):
         return "Miniconda3-py{}_{}-{}-{}.{}".format(
-            self._pythonversion, 
-            self.version, 
-            self._platform, 
+            self._pythonversion,
+            self.version,
+            self._platform,
             self.settings.arch,
             self._suffix)
-    
+
     def configure(self):
         if self.settings.os != "Windows":
             raise ConanInvalidConfiguration("Recipe is only implemented for Windows")
         pass
-    
+
     def source(self):
-    
+
         source_url = "https://repo.anaconda.com/miniconda/" + self._installer
         # https://docs.conda.io/en/latest/miniconda_hashes.html
         sha256 = {
@@ -71,11 +74,11 @@ class MinicondaConan(ConanFile):
             "Macos": "a9ea0afba55b5d872e01323d495b649eac8ff4ce2ea098fb4c357b6139fe6478",
             "Linux": "1314b90489f154602fd794accfc90446111514a5a72fe1f71ab83e07de9504a7"}\
             .get(str(self.settings.os))
-    
+
         tools.download(source_url, self._installer, sha256=sha256)
 
     def build(self):
-        
+
         self.output.info("Running conda installer..")
         install_path = os.path.join(self.build_folder, "miniconda3")
         install_options = " /RegisterPython=0 /S "
@@ -93,12 +96,12 @@ class MinicondaConan(ConanFile):
                 for channel in self._channels():
                     self.run("conda config --add channels {}".format(channel))
             if self._packages:
-                self.output.info("Installing packages") 
+                self.output.info("Installing packages")
                 self.run("conda install -y {}".format(self._packages))
-        
+
     def package(self):
         self.copy(pattern="*", src="miniconda3", keep_path=True, symlinks=True)
-        
+
     def package_info(self):
         self.output.info("Exporting CONDA environment")
         self.env_info.PATH.append(
